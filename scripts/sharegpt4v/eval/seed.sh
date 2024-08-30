@@ -42,4 +42,3 @@ python scripts/convert_seed_for_submission.py \
     --annotation-file ./playground/data/eval/seed_bench/SEED-Bench.json \
     --result-file $output_file \
     --result-upload-file ./playground/data/eval/seed_bench/answers_upload/${CKPT_NAME}.jsonl
-
