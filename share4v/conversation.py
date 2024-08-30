@@ -5,6 +5,7 @@ from typing import List
 
 class SeparatorStyle(Enum):
     """Different separator style."""
+
     SINGLE = auto()
     TWO = auto()
     PLAIN = auto()
@@ -14,6 +15,7 @@ class SeparatorStyle(Enum):
 @dataclasses.dataclass
 class Conversation:
     """A class that keeps all conversation history."""
+
     system: str
     roles: List[str]
     messages: List[List[str]]
@@ -31,7 +33,7 @@ class Conversation:
             messages = self.messages.copy()
             init_role, init_msg = messages[0].copy()
             init_msg = init_msg[0].replace("<image>", "").strip()
-            if 'mmtag' in self.version:
+            if "mmtag" in self.version:
                 messages[0] = (init_role, init_msg)
                 messages.insert(0, (self.roles[0], "<Image><image></Image>"))
                 messages.insert(1, (self.roles[1], "Received."))
@@ -58,8 +60,13 @@ class Conversation:
                 else:
                     ret += role + ":"
         elif self.sep_style == SeparatorStyle.LLAMA_2:
-            def wrap_sys(msg): return f"<<SYS>>\n{msg}\n<</SYS>>\n\n"
-            def wrap_inst(msg): return f"[INST] {msg} [/INST]"
+
+            def wrap_sys(msg):
+                return f"<<SYS>>\n{msg}\n<</SYS>>\n\n"
+
+            def wrap_inst(msg):
+                return f"[INST] {msg} [/INST]"
+
             ret = ""
 
             for i, (role, message) in enumerate(messages):
@@ -99,31 +106,34 @@ class Conversation:
 
     def get_images(self, return_pil=False):
         images = []
-        for i, (role, msg) in enumerate(self.messages[self.offset:]):
+        for i, (role, msg) in enumerate(self.messages[self.offset :]):
             if i % 2 == 0:
                 if type(msg) is tuple:
                     import base64
                     from io import BytesIO
 
                     from PIL import Image
+
                     msg, image, image_process_mode = msg
                     if image_process_mode == "Pad":
+
                         def expand2square(pil_img, background_color=(122, 116, 104)):
                             width, height = pil_img.size
                             if width == height:
                                 return pil_img
                             elif width > height:
                                 result = Image.new(
-                                    pil_img.mode, (width, width), background_color)
-                                result.paste(
-                                    pil_img, (0, (width - height) // 2))
+                                    pil_img.mode, (width, width), background_color
+                                )
+                                result.paste(pil_img, (0, (width - height) // 2))
                                 return result
                             else:
                                 result = Image.new(
-                                    pil_img.mode, (height, height), background_color)
-                                result.paste(
-                                    pil_img, ((height - width) // 2, 0))
+                                    pil_img.mode, (height, height), background_color
+                                )
+                                result.paste(pil_img, ((height - width) // 2, 0))
                                 return result
+
                         image = expand2square(image)
                     elif image_process_mode in ["Default", "Crop"]:
                         pass
@@ -131,12 +141,12 @@ class Conversation:
                         image = image.resize((336, 336))
                     else:
                         raise ValueError(
-                            f"Invalid image_process_mode: {image_process_mode}")
+                            f"Invalid image_process_mode: {image_process_mode}"
+                        )
                     max_hw, min_hw = max(image.size), min(image.size)
                     aspect_ratio = max_hw / min_hw
                     max_len, min_len = 800, 400
-                    shortest_edge = int(
-                        min(max_len / aspect_ratio, min_len, min_hw))
+                    shortest_edge = int(min(max_len / aspect_ratio, min_len, min_hw))
                     longest_edge = int(shortest_edge * aspect_ratio)
                     W, H = image.size
                     if longest_edge != max(image.size):
@@ -150,24 +160,23 @@ class Conversation:
                     else:
                         buffered = BytesIO()
                         image.save(buffered, format="PNG")
-                        img_b64_str = base64.b64encode(
-                            buffered.getvalue()).decode()
+                        img_b64_str = base64.b64encode(buffered.getvalue()).decode()
                         images.append(img_b64_str)
         return images
 
     def to_gradio_chatbot(self):
         ret = []
-        for i, (role, msg) in enumerate(self.messages[self.offset:]):
+        for i, (role, msg) in enumerate(self.messages[self.offset :]):
             if i % 2 == 0:
                 if type(msg) is tuple:
                     import base64
                     from io import BytesIO
+
                     msg, image, image_process_mode = msg
                     max_hw, min_hw = max(image.size), min(image.size)
                     aspect_ratio = max_hw / min_hw
                     max_len, min_len = 800, 400
-                    shortest_edge = int(
-                        min(max_len / aspect_ratio, min_len, min_hw))
+                    shortest_edge = int(min(max_len / aspect_ratio, min_len, min_hw))
                     longest_edge = int(shortest_edge * aspect_ratio)
                     W, H = image.size
                     if H > W:
@@ -177,10 +186,9 @@ class Conversation:
                     image = image.resize((W, H))
                     buffered = BytesIO()
                     image.save(buffered, format="JPEG")
-                    img_b64_str = base64.b64encode(
-                        buffered.getvalue()).decode()
+                    img_b64_str = base64.b64encode(buffered.getvalue()).decode()
                     img_str = f'<img src="data:image/png;base64,{img_b64_str}" alt="user upload image" />'
-                    msg = img_str + msg.replace('<image>', '').strip()
+                    msg = img_str + msg.replace("<image>", "").strip()
                     ret.append([msg, None])
                 else:
                     ret.append([msg, None])
@@ -197,14 +205,17 @@ class Conversation:
             sep_style=self.sep_style,
             sep=self.sep,
             sep2=self.sep2,
-            version=self.version)
+            version=self.version,
+        )
 
     def dict(self):
         if len(self.get_images()) > 0:
             return {
                 "system": self.system,
                 "roles": self.roles,
-                "messages": [[x, y[0] if type(y) is tuple else y] for x, y in self.messages],
+                "messages": [
+                    [x, y[0] if type(y) is tuple else y] for x, y in self.messages
+                ],
                 "offset": self.offset,
                 "sep": self.sep,
                 "sep2": self.sep2,
@@ -221,11 +232,15 @@ class Conversation:
 
 conv_vicuna_v0 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
-           "The assistant gives helpful, detailed, and polite answers to the human's questions.",
+    "The assistant gives helpful, detailed, and polite answers to the human's questions.",
     roles=("Human", "Assistant"),
     messages=(
-        ("Human", "What are the key differences between renewable and non-renewable energy sources?"),
-        ("Assistant",
+        (
+            "Human",
+            "What are the key differences between renewable and non-renewable energy sources?",
+        ),
+        (
+            "Assistant",
             "Renewable energy sources are those that can be replenished naturally in a relatively "
             "short amount of time, such as solar, wind, hydro, geothermal, and biomass. "
             "Non-renewable energy sources, on the other hand, are finite and will eventually be "
@@ -243,7 +258,8 @@ conv_vicuna_v0 = Conversation(
             "5. Flexibility: Renewable energy sources are often more flexible and can be adapted to different "
             "situations and needs, while non-renewable sources are more rigid and inflexible.\n"
             "6. Sustainability: Renewable energy sources are more sustainable over the long term, while "
-            "non-renewable sources are not, and their depletion can lead to economic and social instability.\n")
+            "non-renewable sources are not, and their depletion can lead to economic and social instability.\n",
+        ),
     ),
     offset=2,
     sep_style=SeparatorStyle.SINGLE,
@@ -277,8 +293,8 @@ If a question does not make any sense, or is not factually coherent, explain why
 
 conv_share4v_llama_2 = Conversation(
     system="You are a helpful language and vision assistant. "
-           "You are able to understand the visual content that the user provides, "
-           "and assist the user with a variety of tasks using natural language.",
+    "You are able to understand the visual content that the user provides, "
+    "and assist the user with a variety of tasks using natural language.",
     roles=("USER", "ASSISTANT"),
     version="llama_v2",
     messages=(),
@@ -291,8 +307,7 @@ conv_share4v_llama_2 = Conversation(
 conv_share4v_plain = Conversation(
     system="",
     roles=("", ""),
-    messages=(
-    ),
+    messages=(),
     offset=0,
     sep_style=SeparatorStyle.PLAIN,
     sep="\n",
@@ -300,10 +315,9 @@ conv_share4v_plain = Conversation(
 
 conv_share4v_v0 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
-           "The assistant gives helpful, detailed, and polite answers to the human's questions.",
+    "The assistant gives helpful, detailed, and polite answers to the human's questions.",
     roles=("Human", "Assistant"),
-    messages=(
-    ),
+    messages=(),
     offset=0,
     sep_style=SeparatorStyle.SINGLE,
     sep="###",
@@ -311,11 +325,10 @@ conv_share4v_v0 = Conversation(
 
 conv_share4v_v0_mmtag = Conversation(
     system="A chat between a curious user and an artificial intelligence assistant. "
-           "The assistant is able to understand the visual content that the user provides, and assist the user with a variety of tasks using natural language."
-           "The visual content will be provided with the following format: <Image>visual content</Image>.",
+    "The assistant is able to understand the visual content that the user provides, and assist the user with a variety of tasks using natural language."
+    "The visual content will be provided with the following format: <Image>visual content</Image>.",
     roles=("Human", "Assistant"),
-    messages=(
-    ),
+    messages=(),
     offset=0,
     sep_style=SeparatorStyle.SINGLE,
     sep="###",
@@ -324,7 +337,7 @@ conv_share4v_v0_mmtag = Conversation(
 
 conv_share4v_v1 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
-           "The assistant gives helpful, detailed, and polite answers to the human's questions.",
+    "The assistant gives helpful, detailed, and polite answers to the human's questions.",
     roles=("USER", "ASSISTANT"),
     version="v1",
     messages=(),
@@ -336,8 +349,8 @@ conv_share4v_v1 = Conversation(
 
 conv_share4v_v1_mmtag = Conversation(
     system="A chat between a curious user and an artificial intelligence assistant. "
-           "The assistant is able to understand the visual content that the user provides, and assist the user with a variety of tasks using natural language."
-           "The visual content will be provided with the following format: <Image>visual content</Image>.",
+    "The assistant is able to understand the visual content that the user provides, and assist the user with a variety of tasks using natural language."
+    "The visual content will be provided with the following format: <Image>visual content</Image>.",
     roles=("USER", "ASSISTANT"),
     messages=(),
     offset=0,
@@ -354,14 +367,13 @@ conv_templates = {
     "v1": conv_vicuna_v1,
     "vicuna_v1": conv_vicuna_v1,
     "llama_2": conv_llama_2,
-
     "plain": conv_share4v_plain,
     "v0_plain": conv_share4v_plain,
     "share4v_v0": conv_share4v_v0,
     "v0_mmtag": conv_share4v_v0_mmtag,
     "share4v_v1": conv_share4v_v1,
     "v1_mmtag": conv_share4v_v1_mmtag,
-    "share4v_llama_2": conv_share4v_llama_2
+    "share4v_llama_2": conv_share4v_llama_2,
 }
 
 

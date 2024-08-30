@@ -103,8 +103,12 @@ class EvaCLIPTextConfig(PretrainedConfig):
         eos_token_id=2,
         **kwargs,
     ):
-        super().__init__(pad_token_id=pad_token_id,
-                         bos_token_id=bos_token_id, eos_token_id=eos_token_id, **kwargs)
+        super().__init__(
+            pad_token_id=pad_token_id,
+            bos_token_id=bos_token_id,
+            eos_token_id=eos_token_id,
+            **kwargs,
+        )
 
         self.vocab_size = vocab_size
         self.hidden_size = hidden_size
@@ -124,15 +128,22 @@ class EvaCLIPTextConfig(PretrainedConfig):
         self.attention_dropout = attention_dropout
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs) -> "PretrainedConfig":
+    def from_pretrained(
+        cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs
+    ) -> "PretrainedConfig":
         config_dict, kwargs = cls.get_config_dict(
-            pretrained_model_name_or_path, **kwargs)
+            pretrained_model_name_or_path, **kwargs
+        )
 
         # get the text config dict if we are loading from CLIPConfig
         if config_dict.get("model_type") == "clip":
             config_dict = config_dict["text_config"]
 
-        if "model_type" in config_dict and hasattr(cls, "model_type") and config_dict["model_type"] != cls.model_type:
+        if (
+            "model_type" in config_dict
+            and hasattr(cls, "model_type")
+            and config_dict["model_type"] != cls.model_type
+        ):
             logger.warning(
                 f"You are using a model of type {config_dict['model_type']} to instantiate a model of type "
                 f"{cls.model_type}. This is not supported for all configurations of models and can yield errors."
@@ -236,15 +247,22 @@ class EvaCLIPVisionConfig(PretrainedConfig):
         self.hidden_act = hidden_act
 
     @classmethod
-    def from_pretrained(cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs) -> "PretrainedConfig":
+    def from_pretrained(
+        cls, pretrained_model_name_or_path: Union[str, os.PathLike], **kwargs
+    ) -> "PretrainedConfig":
         config_dict, kwargs = cls.get_config_dict(
-            pretrained_model_name_or_path, **kwargs)
+            pretrained_model_name_or_path, **kwargs
+        )
 
         # get the vision config dict if we are loading from CLIPConfig
         if config_dict.get("model_type") == "clip":
             config_dict = config_dict["vision_config"]
 
-        if "model_type" in config_dict and hasattr(cls, "model_type") and config_dict["model_type"] != cls.model_type:
+        if (
+            "model_type" in config_dict
+            and hasattr(cls, "model_type")
+            and config_dict["model_type"] != cls.model_type
+        ):
             logger.warning(
                 f"You are using a model of type {config_dict['model_type']} to instantiate a model of type "
                 f"{cls.model_type}. This is not supported for all configurations of models and can yield errors."
@@ -303,7 +321,12 @@ class EvaCLIPConfig(PretrainedConfig):
     is_composition = True
 
     def __init__(
-        self, text_config=None, vision_config=None, projection_dim=512, logit_scale_init_value=2.6592, **kwargs
+        self,
+        text_config=None,
+        vision_config=None,
+        projection_dim=512,
+        logit_scale_init_value=2.6592,
+        **kwargs,
     ):
         # If `_config_dict` exist, we use them for the backward compatibility.
         # We pop out these 2 attributes before calling `super().__init__` to avoid them being saved (which causes a lot
@@ -325,7 +348,11 @@ class EvaCLIPConfig(PretrainedConfig):
 
             # Give a warning if the values exist in both `_text_config_dict` and `text_config` but being different.
             for key, value in _text_config_dict.items():
-                if key in text_config and value != text_config[key] and key not in ["transformers_version"]:
+                if (
+                    key in text_config
+                    and value != text_config[key]
+                    and key not in ["transformers_version"]
+                ):
                     # If specified in `text_config_dict`
                     if key in text_config_dict:
                         message = (
@@ -348,17 +375,21 @@ class EvaCLIPConfig(PretrainedConfig):
                 vision_config = {}
 
             # This is the complete result when using `vision_config_dict`.
-            _vision_config_dict = EvaCLIPVisionConfig(
-                **vision_config_dict).to_dict()
+            _vision_config_dict = EvaCLIPVisionConfig(**vision_config_dict).to_dict()
             # convert keys to string instead of integer
             if "id2label" in _vision_config_dict:
                 _vision_config_dict["id2label"] = {
-                    str(key): value for key, value in _vision_config_dict["id2label"].items()
+                    str(key): value
+                    for key, value in _vision_config_dict["id2label"].items()
                 }
 
             # Give a warning if the values exist in both `_vision_config_dict` and `vision_config` but being different.
             for key, value in _vision_config_dict.items():
-                if key in vision_config and value != vision_config[key] and key not in ["transformers_version"]:
+                if (
+                    key in vision_config
+                    and value != vision_config[key]
+                    and key not in ["transformers_version"]
+                ):
                     # If specified in `vision_config_dict`
                     if key in vision_config_dict:
                         message = (
@@ -379,12 +410,14 @@ class EvaCLIPConfig(PretrainedConfig):
         if text_config is None:
             text_config = {}
             logger.info(
-                "`text_config` is `None`. Initializing the `CLIPTextConfig` with default values.")
+                "`text_config` is `None`. Initializing the `CLIPTextConfig` with default values."
+            )
 
         if vision_config is None:
             vision_config = {}
             logger.info(
-                "`vision_config` is `None`. initializing the `CLIPVisionConfig` with default values.")
+                "`vision_config` is `None`. initializing the `CLIPVisionConfig` with default values."
+            )
 
         self.text_config = EvaCLIPTextConfig(**text_config)
         self.vision_config = EvaCLIPVisionConfig(**vision_config)
@@ -394,7 +427,12 @@ class EvaCLIPConfig(PretrainedConfig):
         self.initializer_factor = 1.0
 
     @classmethod
-    def from_text_vision_configs(cls, text_config: EvaCLIPTextConfig, vision_config: EvaCLIPVisionConfig, **kwargs):
+    def from_text_vision_configs(
+        cls,
+        text_config: EvaCLIPTextConfig,
+        vision_config: EvaCLIPVisionConfig,
+        **kwargs,
+    ):
         r"""
         Instantiate a [`CLIPConfig`] (or a derived class) from clip text model configuration and clip vision model
         configuration.
@@ -403,7 +441,11 @@ class EvaCLIPConfig(PretrainedConfig):
             [`CLIPConfig`]: An instance of a configuration object
         """
 
-        return cls(text_config=text_config.to_dict(), vision_config=vision_config.to_dict(), **kwargs)
+        return cls(
+            text_config=text_config.to_dict(),
+            vision_config=vision_config.to_dict(),
+            **kwargs,
+        )
 
     def to_dict(self):
         """
