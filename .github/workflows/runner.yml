@@ -1,12 +1,8 @@
 name: Run VisionAI Setup
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+    branches: [ '*' ]
 
 jobs:
   setup-and-run:
