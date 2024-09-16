@@ -12,7 +12,7 @@ export QUOTA=reserved
 
 export DATA_PATH=data/sharegpt4v/share-captioner_coco_lcs_sam_1246k_1107.json
 # You should download the pretrained projector from LLaVA-v1.5
-export CKPT_PATH=pretrained/projector/llava-v1.5-mlp2x-336px-pretrain-vicuna-7b-v1.5/mm_projector.bin 
+export CKPT_PATH=pretrained/projector/llava-v1.5-mlp2x-336px-pretrain-vicuna-7b-v1.5/mm_projector.bin
 export SAVE_PATH=share4v-7b_pretrained_pt-1.2m_ft-vit-l12-mlp-llm-lr-2e-5
 export TUNE_ENTIRE_MODEL=true
 export TUNE_VIT_FROM=12
