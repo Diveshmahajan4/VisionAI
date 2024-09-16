@@ -1,4 +1,4 @@
-name: Run ShareGPT4V Setup
+name: Run VisionAI Setup
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   setup-and-run:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     # 1. Install required dependencies (including Miniconda for Conda)
